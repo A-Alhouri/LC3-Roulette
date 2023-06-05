@@ -6,7 +6,7 @@ Indsatser .fill #100
 .fill #300
 .fill #400
 
-Guesses .fill #53
+Guesses .fill #56
 .fill #41
 .fill #41
 .fill #41
@@ -176,6 +176,37 @@ ADD R3, R3, #-16;
 ADD R3, R1, R3;
 BRz	LINE;
 
+;Corner
+AND R3, R3, #0;
+ADD R3, R3, #-10; -54
+ADD R3, R3, #-12;
+ADD R3, R3, #-16;
+ADD R3, R3, #-16;
+ADD R3, R1, R3;
+BRz	CORNER;
+
+;RSplit
+AND R3, R3, #0;
+ADD R3, R3, #-10; -55
+ADD R3, R3, #-13;
+ADD R3, R3, #-16;
+ADD R3, R3, #-16;
+ADD R3, R1, R3;
+BRnp #2;
+JSR RSPLIT;
+BR Checker;
+
+;CSplit
+AND R3, R3, #0;
+ADD R3, R3, #-10; -56
+ADD R3, R3, #-14;
+ADD R3, R3, #-16;
+ADD R3, R3, #-16;
+ADD R3, R1, R3;
+BRnp #2;
+JSR CSPLIT;
+BR Checker;
+
 ;Hvis personen kun har bettet på et tal, tjek om tallet-RNG=0. hvis ja; Sejr. 
 AND R6, R6, #0;
 ADD R6, R6, #10;
@@ -184,6 +215,54 @@ ADD R6, R6, #15;
 ADD R1, R1, R2;
 BRz Udbetaling
 BRnp NextBet
+
+Player1Chips .FILL	#0
+
+NumOfBets .fill #4
+
+BetNumber .fill #0
+
+Row1 .fill 1
+.fill 2
+.fill 3
+Row2 .fill 4
+.fill 5
+.fill 6
+Row3 .fill 7
+.fill 8
+.fill 9
+Row4 .fill 10
+.fill 11
+.fill 12
+Row5 .fill 13
+.fill 14
+.fill 15
+Row6 .fill 16
+.fill 17
+.fill 18
+Row7 .fill 19
+.fill 20
+.fill 21
+Row8 .fill 22
+.fill 23
+.fill 24
+Row9 .fill 25
+.fill 26
+.fill 27
+Row10 .fill 28
+.fill 29
+.fill 30
+Row11 .fill 31
+.fill 32
+.fill 33
+Row12 .fill 34
+.fill 35
+.fill 36
+.fill 0
+
+GETTABLE
+LEA R4, Row1;
+RET;
 
 ;Løbe lister igennem //Kode fra her til ---- er taget fra forelæsning 2 af 3-ugers (modificeret).
 ;R4=pointer, R5=indhold af pointer 
@@ -214,7 +293,6 @@ LD	R1,	Player1Chips;
 ADD R1, R1, R0;
 ST	R1,	Player1Chips;
 
-
 NextBet 
 JSR RowReset;
 LD R4, NumOfBets;
@@ -239,29 +317,28 @@ BRnzp RUN;
 DONE TRAP	x25; udbetalt og her fra skal udvidelsen tilføjelse
 
 Roed
-LEA	R4,	RoedListe; Adressen af listen gemmes i R4
+JSR GETROED; Adressen af listen gemmes i R4
 AND R6, R6, #0;
 ADD R6, R6, #1;
 BR Checker;
 
 Sort 
-LEA	R4,	SortListe; Adressen af listen gemmes i R4
+JSR GETSORT; Adressen af listen gemmes i R4
 AND R6, R6, #0;
 ADD R6, R6, #1;
 BR Checker;
 
 Even
-LEA	R4,	EvenListe; Adressen af listen gemmes i R4
+JSR GETEVENS; Adressen af listen gemmes i R4
 AND R6, R6, #0;
 ADD R6, R6, #1;
 BR Checker;
 
 Odd
-LEA	R4,	OddListe; Adressen af listen gemmes i R4
+JSR GETODDS; Adressen af listen gemmes i R4
 AND R6, R6, #0;
 ADD R6, R6, #1;
 BR Checker;
-
 
 LOW
 LEA R4, Row1;
@@ -274,7 +351,6 @@ LDI R3, EndRow; Load værdi af Row7 i R3
 ST R3, EndRowVal;
 STI R7, EndRow; Store 0 i Row7
 BR Checker;
-
 
 HIGH
 LEA R4, Row7;
@@ -432,19 +508,147 @@ LD R4, EndRow;
 ADD R4, R4, #-6;
 BR Checker;
 
+CORNER
+AND R6, R6, #0;
+ADD R6, R6, #8;
+LEA R4, Row1;
+LEA R5, CornerList;
+LD R3, ARG2;
+BRn CORNER2
+
+ADD R3, R3, #-1;
+JSR LOOP6;
+JSR BUILD;
+BR Checker;
+
+CORNER2
+NOT R3, R3;
+ADD R3, R3, #1;
+JSR LOOP6;
+ADD R4, R4, #-2;
+JSR BUILD;
+BR Checker;
+
+LOOP6
+ADD R4, R4, #3;
+ADD R3, R3, #-1;
+BRnp LOOP6;
+RET;
+
+BUILD
+LDR R3, R4, #0;
+STR R3, R5, #0;
+LDR R3, R4, #1;
+STR R3, R5, #1;
+LDR R3, R4, #3;
+STR R3, R5, #2;
+LDR R3, R4, #4;
+STR R3, R5, #3;
+AND R3, R3, #0;
+STR R3, R5, #4;
+LEA R4, CornerList;
+RET;
+
+RSPLIT
+AND R6, R6, #0;
+ADD R6, R6, #2;
+ADD R6, R6, #15;
+JSR GETTABLE;
+ST R7, CALLSTACK;
+LEA R5, SplitList;
+LD R3, ARG2;
+BRn RSPLIT2;
+ADD R3, R3, #-1;
+JSR LOOP6;
+JSR BUILD2;
+LD R7, CALLSTACK;
+RET;
+
+RSPLIT2
+NOT R3, R3;
+ADD R3, R3, #1;
+JSR LOOP6;
+ADD R4, R4, #-2;
+JSR BUILD2;
+LD R7, CALLSTACK;
+RET;
+
+BUILD2
+LDR R3, R4, #0;
+STR R3, R5, #0;
+LDR R3, R4, #1;
+STR R3, R5, #1;
+AND R3, R3, #0;
+STR R3, R5, #2;
+LEA R4, SplitList;
+RET;
+
+CSPLIT
+AND R6, R6, #0;
+ADD R6, R6, #2;
+ADD R6, R6, #15;
+ST R7, CALLSTACK;
+JSR GETTABLE;
+LEA R5, SplitList;
+LD R3, ARG2;
+BRn CSPLIT2;
+ADD R3, R3, #-12;
+BRp CSPLIT3;
+LD R3, ARG2;
+ADD R3, R3, #-1;
+JSR LOOP6;
+JSR BUILD3;
+LD R7, CALLSTACK;
+RET;
+
+CSPLIT2
+NOT R3, R3;
+ADD R3, R3, #1;
+JSR LOOP6;
+ADD R4, R4, #-2;
+JSR BUILD3;
+LD R7, CALLSTACK;
+RET;
+
+CSPLIT3
+JSR LOOP6;
+ADD R4, R4, #-1;
+JSR BUILD3;
+LD R7, CALLSTACK;
+RET;
+
+BUILD3
+LDR R3, R4, #0;
+STR R3, R5, #0;
+LDR R3, R4, #3;
+STR R3, R5, #1;
+AND R3, R3, #0;
+STR R3, R5, #2;
+LEA R4, SplitList;
+RET;
 
 RowReset
 LD R3, EndRowVal;
 STI R3, EndRow;
 RET;
 
+GETEVENS
+LEA R4, EvenListe;
+RET;
+
+GETODDS 
+LEA R4, OddListe;
+RET;
+
+GETSORT
+LEA R4, SortListe;
+RET;
+
+GETROED
+LEA R4, RoedListe;
+RET;
+
 ;Varibel - lister
-
-Player1Chips .FILL	#0
-
-NumOfBets .fill #4
-
-BetNumber .fill #0
 
 EndRow .BLKW	1
 
@@ -452,8 +656,14 @@ EndRowVal .BLKW	1
 
 ColumnList .BLKW	13
 
+CornerList .BLKW	5
+
+SplitList .BLKW	3
+
 ARG2 .fill 4
 ; ARG2 .blkw 1
+
+CALLSTACK .BLKW	1
 
 RoedListe .fill #1
 .fill #3
@@ -533,44 +743,6 @@ OddListe .fill #1
 .fill #31
 .fill #33
 .fill #35
-.fill 0
-
-Row1 .fill 1
-.fill 2
-.fill 3
-Row2 .fill 4
-.fill 5
-.fill 6
-Row3 .fill 7
-.fill 8
-.fill 9
-Row4 .fill 10
-.fill 11
-.fill 12
-Row5 .fill 13
-.fill 14
-.fill 15
-Row6 .fill 16
-.fill 17
-.fill 18
-Row7 .fill 19
-.fill 20
-.fill 21
-Row8 .fill 22
-.fill 23
-.fill 24
-Row9 .fill 25
-.fill 26
-.fill 27
-Row10 .fill 28
-.fill 29
-.fill 30
-Row11 .fill 31
-.fill 32
-.fill 33
-Row12 .fill 34
-.fill 35
-.fill 36
 .fill 0
 
 .END;
