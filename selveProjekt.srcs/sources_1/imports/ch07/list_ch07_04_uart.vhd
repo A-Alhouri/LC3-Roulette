@@ -12,8 +12,8 @@ entity uart is
       --DVSR: integer:= 163;  -- baud rate divisor
       DVSR: integer:= 27;                      -- DVSR = 50M/(16*baud rate)
       DVSR_BIT: integer:=8; -- # bits of DVSR
-      FIFO_W: integer:=2    -- # addr bits of FIFO
-                            -- # words in FIFO=2^FIFO_W
+      --FIFO_W: integer:=2    -- # addr bits of FIFO
+      FIFO_W: integer:=3    -- # words in FIFO=2^FIFO_W
    );
    port(
       clk, reset: in std_logic;
